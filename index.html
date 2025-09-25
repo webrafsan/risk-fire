@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire Risk Assessment System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Navigation */
+        .nav-header {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .nav-header h1 {
+            color: #ffffff;
+            margin-bottom: 24px;
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: #ffffff;
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            padding: 16px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-color: #3b82f6;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Page Styles */
+        .page {
+            display: none;
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(75, 85, 99, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            min-height: 700px;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .page-title {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            position: relative;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+
+        /* AI Agent Dashboard Styles */
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .agent-card {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .agent-card h3 {
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .agent-card p {
+            color: #d1d5db;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .agent-card strong {
+            color: #ffffff;
+        }
+
+        .process-flow {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0;
+            overflow-x: auto;
+            padding: 16px 0;
+        }
+
+        .flow-step {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .flow-step::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid #3b82f6;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        /* Compliance Dashboard Styles */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            color: #fecaca;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-banner.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+        }
+
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .alert-banner.warning .alert-icon {
+            background: #f59e0b;
+        }
+
+        .building-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .building-card {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .building-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .building-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .building-header h3 {
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-overdue {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .building-card p {
+            color: #d1d5db;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .building-card strong {
+            color: #ffffff;
+        }
+
+        .progress-bar {
+            background: rgba(55, 65, 81, 0.5);
+            border-radius: 10px;
+            height: 6px;
+            margin: 16px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .task-summary {
+            display: flex;
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-count {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border-radius: 12px;
+            min-width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .task-count.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .task-count.overdue {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .task-count.pending {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(55, 65, 81, 0.5);
+            color: #d1d5db;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(75, 85, 99, 0.5);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        /* Resident Portal Styles */
+        .resident-header {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resident-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cpattern id='grid' width='10' height='10' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 10 0 L 0 0 0 10' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grid)'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .resident-header>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .resident-header h2 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .resident-header p {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .last-updated {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .info-section {
+            background: rgba(31, 41, 55, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.2);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .info-section h3 {
+            color: #ffffff;
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .info-section p {
+            color: #d1d5db;
+            line-height: 1.7;
+        }
+
+        .info-section ul {
+            color: #d1d5db;
+            padding-left: 20px;
+        }
+
+        .info-section li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .contact-info {
+            background: rgba(55, 65, 81, 0.3);
+            border: 1px solid rgba(75, 85, 99, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .contact-info h4 {
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .contact-info p {
+            color: #d1d5db;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .contact-info strong {
+            color: #ffffff;
+        }
+
+        .download-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: rgba(55, 65, 81, 0.5);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #d1d5db;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            transform: translateY(-3px);
+            border-color: #3b82f6;
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .download-icon {
+            width: 20px;
+            height: 20px;
+            background: currentColor;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: contain;
+        }
+
+        .compliance-notice {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            position: relative;
+        }
+
+        .compliance-notice h4 {
+            color: #10b981;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .compliance-notice p {
+            color: #d1d5db;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .compliance-notice ul {
+            color: #d1d5db;
+            padding-left: 20px;
+        }
+
+        .compliance-notice li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .compliance-notice strong {
+            color: #ffffff;
+        }
+
+        .compliance-notice em {
+            color: #10b981;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .nav-header {
+                padding: 24px 20px;
+            }
+
+            .nav-header h1 {
+                font-size: 2rem;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .page {
+                padding: 24px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .agent-grid,
+            .building-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .task-summary {
+                flex-wrap: wrap;
+            }
+
+            .download-links {
+                grid-template-columns: 1fr;
+            }
+
+            .resident-header {
+                padding: 28px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .flow-step {
+                font-size: 12px;
+                padding: 10px 16px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                text-align: center;
+            }
+        }
+    </style>
+    ```
+</head>
+
+<body>
+    <div class="container">
+        <!-- Navigation Header -->
+        <div class="nav-header">
+            <h1>Fire Risk Assessment System</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showPage('ai-agent')">
+                    AI Agent Dashboard
+                </button>
+                <button class="nav-btn" onclick="showPage('compliance')">
+                    Compliance Dashboard
+                </button>
+                <button class="nav-btn" onclick="showPage('resident')">
+                    Resident Portal
+                </button>
+            </div>
+        </div>
+       
+        <!-- AI Agent Dashboard -->
+        <div id="ai-agent" class="page active">
+            <h2 class="page-title">AI Compliance Agent Dashboard</h2>
+
+            <div class="agent-grid">
+                <div class="agent-card">
+                    <h3>
+                        <span class="status-indicator"></span>
+                        Agent Status
+                    </h3>
+                    <p><strong>Status:</strong> Active & Processing</p>
+                    <p><strong>Last Activity:</strong> 2 minutes ago</p>
+                    <p><strong>Documents Processed:</strong> 47 this week</p>
+                    <p><strong>Database:</strong> PgVector Connected</p>
+                </div>
+
+                <div class="agent-card">
+                    <h3>Recent Processing</h3>
+                    <p><strong>Latest:</strong> Oak Heights FRA - 23/09/2025</p>
+                    <p><strong>Actions Extracted:</strong> 12 items</p>
+                    <p><strong>Alerts Generated:</strong> 3 overdue</p>
+                    <p><strong>Processing Time:</strong> 45 seconds</p>
+                </div>
+
+                <div class="agent-card">
+                    <h3>System Performance</h3>
+                    <p><strong>Uptime:</strong> 99.8%</p>
+                    <p><strong>Accuracy Rate:</strong> 94.2%</p>
+                    <p><strong>Queue Size:</strong> 2 pending</p>
+                    <p><strong>Memory Usage:</strong> 2.3GB / 8GB</p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>AI Processing Pipeline</h3>
+                <div class="process-flow">
+                    <div class="flow-step">PDF Ingest</div>
+                    <div class="flow-step">AI Extract</div>
+                    <div class="flow-step">Structure Data</div>
+                    <div class="flow-step">Generate Tasks</div>
+                    <div class="flow-step">Send Alerts</div>
+                    <div class="flow-step">Update Memory</div>
+                </div>
+                <p>The AI agent continuously monitors for new Fire Risk Assessment documents via
+                    email or direct upload, processes them using GPT-4o, and automatically generates structured
+                    compliance tasks with intelligent priority scheduling.</p>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary">Upload FRA Document</button>
+                <button class="btn btn-secondary">View Processing Logs</button>
+                <button class="btn btn-secondary">Agent Configuration</button>
+            </div>
+        </div>
+        <!-- Compliance Dashboard -->
+        <div id="compliance" class="page">
+            <h2 class="page-title">Compliance Management Dashboard</h2>
+
+            <div class="dashboard-header">
+                <div class="action-buttons">
+                    <button class="btn btn-primary">Add New Building</button>
+                    <button class="btn btn-secondary">Import FRA Report</button>
+                </div>
+            </div>
+
+            <div class="alert-banner">
+                <div class="alert-icon">!</div>
+                <div>
+                    <strong>3 Overdue Items:</strong> Manor Gardens (2), Riverside Court (1) -
+                    Immediate attention required
+                </div>
+            </div>
+
+            <div class="alert-banner warning">
+                <div class="alert-icon">⚠</div>
+                <div>
+                    <strong>5 Items Due This Week:</strong> Review and action required for compliance
+                    maintenance
+                </div>
+            </div>
+
+            <div class="building-grid">
+                <div class="building-card">
+                    <div class="building-header">
+                        <h3>Oak Heights Apartments</h3>
+                        <span class="status-badge status-completed">Current</span>
+                    </div>
+                    <p><strong>Last FRA:</strong> 15 Sep 2025</p>
+                    <p><strong>Manager:</strong> Sarah Johnson</p>
+                    <p><strong>Next Review:</strong> 15 Sep 2026</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                    <div class="task-summary">
+                        <div class="task-item">
+                            <div class="task-count">12</div>
+                            <span>Total Tasks</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count completed">10</div>
+                            <span>Complete</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count pending">2</div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">View Tasks</button>
+                        <button class="btn btn-secondary">FRA History</button>
+                    </div>
+                </div>
+
+                <div class="building-card">
+                    <div class="building-header">
+                        <h3>Manor Gardens</h3>
+                        <span class="status-badge status-overdue">Overdue</span>
+                    </div>
+                    <p><strong>Last FRA:</strong> 12 Aug 2025</p>
+                    <p><strong>Manager:</strong> Mike Thompson</p>
+                    <p><strong>Next Review:</strong> 12 Aug 2026</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 60%"></div>
+                    </div>
+                    <div class="task-summary">
+                        <div class="task-item">
+                            <div class="task-count">8</div>
+                            <span>Total Tasks</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count completed">5</div>
+                            <span>Complete</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count overdue">2</div>
+                            <span>Overdue</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count pending">1</div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">View Tasks</button>
+                        <button class="btn btn-secondary">Send Alert</button>
+                    </div>
+                </div>
+
+                <div class="building-card">
+                    <div class="building-header">
+                        <h3>Riverside Court</h3>
+                        <span class="status-badge status-pending">In Progress</span>
+                    </div>
+                    <p><strong>Last FRA:</strong> 20 Sep 2025</p>
+                    <p><strong>Manager:</strong> Emma Davis</p>
+                    <p><strong>Next Review:</strong> 20 Sep 2026</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%"></div>
+                    </div>
+                    <div class="task-summary">
+                        <div class="task-item">
+                            <div class="task-count">15</div>
+                            <span>Total Tasks</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count completed">11</div>
+                            <span>Complete</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count pending">4</div>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">View Tasks</button>
+                        <button class="btn btn-secondary">Update Status</button>
+                    </div>
+                </div>
+
+                <div class="building-card">
+                    <div class="building-header">
+                        <h3>Victoria Place</h3>
+                        <span class="status-badge status-completed">Current</span>
+                    </div>
+                    <p><strong>Last FRA:</strong> 05 Sep 2025</p>
+                    <p><strong>Manager:</strong> James Wilson</p>
+                    <p><strong>Next Review:</strong> 05 Sep 2026</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="task-summary">
+                        <div class="task-item">
+                            <div class="task-count">9</div>
+                            <span>Total Tasks</span>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-count completed">9</div>
+                            <span>Complete</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">View Report</button>
+                        <button class="btn btn-secondary">Generate Certificate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Resident Portal -->
+        <div id="resident" class="page">
+            <div class="resident-header">
+                <h2>Fire Safety Information</h2>
+                <p>Oak Heights Apartments - Building A</p>
+                <p class="last-updated">Last Updated: 15 September 2025</p>
+            </div>
+
+            <div class="info-section">
+                <h3>Latest Fire Risk Assessment Summary</h3>
+                <p>Our most recent Fire Risk Assessment was completed on <strong>15 September
+                        2025</strong> by certified fire safety consultants. The assessment identified several action
+                    points which are being actively addressed by our management team to ensure the highest
+                    standards of fire safety compliance.</p>
+
+                <div class="contact-info">
+                    <h4>Responsible Person</h4>
+                    <p><strong>Name:</strong> Sarah Johnson - Property Manager</p>
+                    <p><strong>Company:</strong> Premier Property Management Ltd</p>
+                    <p><strong>Phone:</strong> 020 7123 4567</p>
+                    <p><strong>Email:</strong> sarah.johnson@premierprop.com</p>
+                    <p><strong>Office Hours:</strong> Monday - Friday, 9:00 AM - 5:30 PM</p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Current Action Status</h3>
+                <ul>
+                    <li>✓ Fire alarm system tested and certified (Completed: 18 Sep 2025)</li>
+                    <li>✓ Emergency lighting inspection completed (Completed: 20 Sep 2025)</li>
+                    <li>
+                        Fire door seals replacement in progress (Due: 30 Sep 2025)</li>
+                    <li> Evacuation signage updates underway (Due: 05 Oct 2025)</li>
+                    <li>
+                        Staff fire safety training scheduled (Due: 15 Oct 2025)</li>
+                    <li> Fire extinguisher servicing scheduled (Due: 20 Oct 2025)</li>
+                </ul>
+                <p style="margin-top: 16px; color: #10b981;"><strong>Overall Compliance Status:</ strong> 85% Complete -
+                        On Track</p>
+            </div>
+
+            <div class="info-section">
+                <h3>Document Downloads</h3>
+                <div class="download-links">
+                    <a href="#" class="download-btn">
+                        <div class="download-icon"></div>
+                        Fire Risk Assessment Report
+                    </a>
+                    <a href="#" class="download-btn">
+                        <div class="download-icon"></div>
+                        Building Evacuation Plan
+                    </a>
+                    <a href="#" class="download-btn">
+                        <div class="download-icon"></div>
+                        Emergency Contact List
+                    </a>
+                    <a href="#" class="download-btn">
+                        <div class="download-icon"></div>
+                        Resident Fire Safety Guide
+                    </a>
+                </div>
+            </div>
+
+            <div class="compliance-notice">
+                <h4>Article 21A - Your Rights (Fire Safety Act 2021)</h4>
+                <p>As a resident, you have the legal right to request and receive information about fire
+                    safety measures in your building. This includes:</p>
+                <ul>
+                    <li>Access to the most recent Fire Risk Assessment and related documentation</li>
+                    <li>Information about the responsible person for fire safety management</li>
+                    <li>Details of fire safety measures and any ongoing remedial works</li>
+                    <li>Regular updates on compliance status and safety improvements</li>
+                    <li>Notification of any significant changes to fire safety arrangements</li>
+                </ul>
+                <p><strong>Need more information?</strong> Contact your property manager using the
+                    details above or visit <em>gov.uk/fire-safety-advice</em> for comprehensive guidance on your
+                    rights and fire safety in residential buildings.</p>
+            </div>
+
+            <div class="info-section">
+                <h3>Emergency Procedures</h3>
+                <p><strong>In Case of Fire:</strong></p>
+                <ul>
+                    <li><strong>1.</strong> Sound the alarm by activating the nearest manual call point</ li>
+                    <li><strong>2.</strong> Leave the building immediately via the nearest available exit</ li>
+                    <li><strong>3.</strong> Close all doors behind you as you evacuate</li>
+                    <li><strong>4.</strong> Proceed directly to the designated assembly point</li>
+                    <li><strong>5.</strong> Call 999 once you are safely outside the building</li>
+                    <li><strong>6.</strong> Do not re-enter the building until authorized by the Fire
+                        Service</li>
+                </ul>
+                <p style="margin-top: 16px;"><strong>Assembly Point:</strong> Main car park area,
+                    north side near the main entrance gate</p>
+                <p><strong>Emergency Services:</strong> 999 | <strong>Building Emergency Line:</ strong> 020 7123 4999
+                </p>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            // Animate progress bars on page load
+            setTimeout(() => {
+                const progressBars = document.querySelectorAll('.progress-fill');
+                progressBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            }, 500);
+
+            // Add click handlers for buttons (placeholder functionality)
+            document.querySelectorAll('.btn, .download-btn').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const originalText = this.textContent.trim();
+                    const originalBg = this.style.background;
+
+                    this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    this.textContent = '✓ Action Completed';
+                    this.style.transform = 'scale(0.95)';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = originalBg;
+                        this.style.transform = '';
+                    }, 1500);
+                });
+            });
+
+            // Simulate real-time data updates
+            setInterval(() => {
+                const indicators = document.querySelectorAll('.status-indicator');
+                indicators.forEach(indicator => {
+                    indicator.style.transform = indicator.style.transform === 'scale(1.2)' ? 'scale(1)' :
+                        'scale(1.2)';
+                });
+            }, 3000);
+        });
+    </script>
+    ```
+</body>
+
+</html>
